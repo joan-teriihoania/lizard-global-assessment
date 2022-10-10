@@ -11,8 +11,8 @@ function App() {
         setPosts(json.posts.map((post) => {
           return {
             "Titre": post.title,
-            "Publié le": post.publishDate,
-            "Résumé": post.summary.substring(0, Math.min(post.summary.length, 200) + (post.summary.length > 200 ?? "...")),
+            "Publié le": new Date(post.publishDate).toLocaleDateString(),
+            "Résumé": post.summary,
             "Auteur": post.author.name,
             "Catégories": post.categories.map((c) => c.name).join(", ")
           }
