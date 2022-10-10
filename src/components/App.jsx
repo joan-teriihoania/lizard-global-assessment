@@ -18,7 +18,7 @@ function App() {
           }
         }))
       })
-    }, Math.random() * 5*1000);
+    }, Math.random() * 2*1000);
   }, [])
 
   return <div>
