@@ -14,11 +14,11 @@ function App() {
             "Publié le": new Date(post.publishDate).toLocaleDateString(),
             "Résumé": post.summary,
             "Auteur": post.author.name,
-            "Catégories": post.categories.map((c) => c.name).join(", ")
+            "Catégories": post.categories.map((c) => c.name)
           }
         }))
       })
-    }, Math.random() * 2*1000);
+    }, Math.random() * (2*1000));
   }, [])
 
   return <div>
