@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Badge, Button, ButtonGroup, Card, Col, Container, Form, FormGroup, Row } from "react-bootstrap";
+import { Badge, Card } from "react-bootstrap";
 import CardHeader from "react-bootstrap/esm/CardHeader";
 import { default as BootstrapTable } from "react-bootstrap/Table";
-import "../styles/Table.css"
+import "../styles/Table.css";
+import FilterForm from "./Table.FilterForm";
+import PaginationBar from "./Table.PaginationBar";
 
 /**
  * Table component
@@ -71,10 +73,6 @@ function Table(props) {
         setFilter(_filter)
     }
 
-    const clickedPage = function (page) {
-        setPage(page)
-    }
-
     const getSortedFilteredData = function () {
         return [...props.data].sort((a, b) => { // copy the data given to the component to a new object reference
             // sorts the objects depending on the ordering state
@@ -113,176 +111,77 @@ function Table(props) {
         })
     }
 
-    // Generates buttons for the pagination bar
-    // first part of the bar to display the first three pages (or lower depending on the maximum page)
-    let paginationFirst = []
-    let pagFirstMin = 1
-    let pagFirstMax = Math.min(maxPage, 3)
-    for (let i = pagFirstMin; i <= pagFirstMax; i++) {
-        paginationFirst.push(<Button onClick={(e) => { clickedPage(i) }} disabled={page === i}>{i}</Button>)
-    }
-    for (let i = 0; i < Math.max(0, 3 - paginationFirst.length); i++) {
-        paginationFirst.push(<Button className="invisible">-1</Button>)
-    }
-
-    // last part of the bar to display the last three pages
-    let paginationLast = []
-    let pagLastMin = Math.max(maxPage - 2, 4)
-    let pagLastMax = maxPage
-    for (let i = pagLastMin; i <= pagLastMax; i++) {
-        paginationLast.push(<Button onClick={(e) => { clickedPage(i) }} disabled={page === i}>{i}</Button>)
-    }
-    for (let i = 0; i < Math.max(0, 3 - paginationLast.length); i++) {
-        paginationLast.push(<Button className="invisible">-1</Button>)
-    }
-
-    // middle part of the bar to display the two pages before and after the currently displayed page
-    // with logic to prevent it from conflicting with the first and last part of the pagination bar
-    let paginationMiddle = []
-    let pagMiddleMin = Math.max(4, page - 1)
-    let pagMiddleMax = Math.min(maxPage - 2, page + 2)
-    for (let i = pagMiddleMin; i < pagMiddleMax; i++) {
-        paginationMiddle.push(<Button onClick={(e) => { clickedPage(i) }} disabled={page === i}>{i}</Button>)
-    }
-    let tmp = paginationMiddle.length
-    for (let i = 0; i < Math.max(0, 3 - tmp); i++) {
-        paginationMiddle.push(<Button className="invisible">-1</Button>)
-    }
-
-
     return (
         <Card>
             <CardHeader>
                 {/** This is the filter form */}
-                <Form>
-                    <Row>
-                        {Object.entries(template).map(([property_name, property_info]) => { // For each property extracted from the template
-                            return <Col sm={12} md={6} lg={4}>
-                                <FormGroup>
-                                    <Form.Label>
-                                        <Form.Text>{property_name}: </Form.Text>
-                                    </Form.Label>
-                                    {
-                                        property_info.type !== "array"
-                                            // if the property is NOT an array, display a normal text input
-                                            ? <Form.Control type="text" name={property_name} value={filter[property_name]} onChange={(e) => {
-                                                // When changing the input value, calls the handling function with the property name and the new value
-                                                changedFilterValue(property_name, e.target.value)
-                                            }
-                                            } />
-                                            // else, display a multielement selector with the uniqueValues as options
-                                            : (
-                                                <Form.Select onChange={(e) => {
-                                                    // When changing the options, calls the handling function with the property name and the selected options
-                                                    changedFilterValue(property_name, [...e.target.options].filter((v) => v.selected).map((v) => v.value))
-                                                }} multiple>
-                                                    {property_info.uniqueValues.map((v) => {
-                                                        return <option value={v}>{v}</option>
-                                                    })}
-                                                </Form.Select>
-                                            )
-                                    }
-                                </FormGroup>
-                            </Col>
-                        })}
-                    </Row>
-
-                    <hr></hr>
-
-                    <Row>
-                        <Container className="pb-3" fluid>
-                            <Form.Label>
-                                <Form.Text>Item per page</Form.Text>
-                            </Form.Label>
-                            <Form.Select onChange={(e) => {
-                                setItemPerPage(e.target.value)
-                            }}>
-                                <option value={1}>1</option>
-                                <option value={5}>5</option>
-                                <option value={10} selected>10</option>
-                                <option value={20}>20</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                            </Form.Select>
-                        </Container>
-                    </Row>
-                </Form>
+                <FilterForm
+                    template={template}
+                    filter={filter}
+                    changedFilterValue={changedFilterValue}
+                    setItemPerPage={setItemPerPage}
+                ></FilterForm>
             </CardHeader>
-            <BootstrapTable striped bordered hover>
-                <thead>
-                    <tr>
-                        {properties.map((property_name) => { // For each property extracted from the template
-                            return <th className="align-middle" role="button" onClick={(e) => { clickedOrderBtn(property_name) /** Calls the handling function for the ordering button with the name of the property */ }}>
-                                <div className="d-flex justify-content-between">
-                                    <div>{property_name}</div>
-                                    <div>
-                                        {
-                                            // displays a button with arrow depending on the ordering state
-                                            orderedBy !== undefined && orderedBy.property === property_name ? (orderedBy.asc ? "🠗" : "🠕") : "⇵"
-                                        }
-                                    </div>
-                                </div>
-                            </th>
-                        })}
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        (getSortedFilteredData().length == 0) ?
-                            (
-                                <tr>
-                                    <td colspan="100%" className="text-center">No entries found</td>
-                                </tr>
-                            ) : (
-                                getSortedFilteredData().slice((page - 1) * itemPerPage, page * itemPerPage).map((o) => {
-                                    // Formats the data to be displayed as a row in the table
-                                    return <tr>
-                                        {Object.entries(template).map(([property_name, property_info]) => {
-                                            if (property_info.type === "array") {
-                                                // joins the array element with commas
-                                                return <td><div className="limit-text-2">{o[property_name].join(", ")}</div></td>
-                                            } else {
-                                                let colored = o[property_name]
-                                                if (filter[property_name] !== "") {
-                                                    // colors the subsets of characters of the filter value in RED
-                                                    let _colored = colored.split(filter[property_name])
-                                                    colored = []
-                                                    for (let i = 0; i < _colored.length - 1; i++) {
-                                                        const element = _colored[i];
-                                                        colored.push(<span>{element}<Badge>{filter[property_name]}</Badge></span>)
-                                                    }
-                                                    colored.push(<span>{_colored[_colored.length - 1]}</span>)
-                                                }
-                                                return <td><div className="limit-text-2">{colored}</div></td>
+
+            <div className="pt-3">
+                <PaginationBar setPage={setPage} maxPage={maxPage} currentPage={page}></PaginationBar>
+            </div>
+
+            <div className="p-3">
+                <BootstrapTable striped bordered hover>
+                    <thead>
+                        <tr>
+                            {properties.map((property_name) => { // For each property extracted from the template
+                                return <th className="align-middle" role="button" onClick={(e) => { clickedOrderBtn(property_name) /** Calls the handling function for the ordering button with the name of the property */ }}>
+                                    <div className="d-flex justify-content-between">
+                                        <div>{property_name}</div>
+                                        <div>
+                                            {
+                                                // displays a button with arrow depending on the ordering state
+                                                orderedBy !== undefined && orderedBy.property === property_name ? (orderedBy.asc ? "🠗" : "🠕") : "⇵"
                                             }
-                                        })}
+                                        </div>
+                                    </div>
+                                </th>
+                            })}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            (getSortedFilteredData().length === 0) ?
+                                (
+                                    <tr>
+                                        <td colspan="100%" className="text-center">No entries found</td>
                                     </tr>
-                                })
-                            )
-                    }
-                </tbody>
-            </BootstrapTable>
-            <div>
-                <Form>
-                    <Container className="pb-3" fluid>
-                        <center>
-                            {/** goes back a page, except when we are at the first page */}
-                            <Button className="me-2" onClick={(e) => { setPage(page - 1) }} disabled={page === 1}>🠔</Button>
-
-                            {/** adds or removes "..." between each section of the pagination bar depending on the currently displayed page and the maximum page */}
-                            <ButtonGroup className="me-2">
-                                {paginationFirst}
-                                {/* pagFirstMax + 1 === pagMiddleMin || paginationMiddle.length === 0 ? <Button className="invisible">-1</Button> : (<Button disabled>...</Button>) */}
-                                {paginationMiddle}
-                                {/* pagMiddleMax === pagLastMin || paginationLast.length === 0 ? <Button className="invisible">-1</Button> : (<Button disabled>...</Button>) */}
-                                {paginationLast}
-                            </ButtonGroup>
-
-                            {/** goes up a page, except when we are at the last page */}
-                            <Button className="me-2" onClick={(e) => { setPage(page + 1) }} disabled={page === maxPage}>➝</Button>
-                        </center>
-                    </Container>
-                </Form>
+                                ) : (
+                                    getSortedFilteredData().slice((page - 1) * itemPerPage, page * itemPerPage).map((o) => {
+                                        // Formats the data to be displayed as a row in the table
+                                        return <tr>
+                                            {Object.entries(template).map(([property_name, property_info]) => {
+                                                if (property_info.type === "array") {
+                                                    // joins the array element with commas
+                                                    return <td><div className="limit-text-2">{o[property_name].join(", ")}</div></td>
+                                                } else {
+                                                    let colored = o[property_name]
+                                                    if (filter[property_name] !== "") {
+                                                        // colors the subsets of characters of the filter value in RED
+                                                        let _colored = colored.split(filter[property_name])
+                                                        colored = []
+                                                        for (let i = 0; i < _colored.length - 1; i++) {
+                                                            const element = _colored[i];
+                                                            colored.push(<span>{element}<Badge>{filter[property_name]}</Badge></span>)
+                                                        }
+                                                        colored.push(<span>{_colored[_colored.length - 1]}</span>)
+                                                    }
+                                                    return <td><div className="limit-text-2">{colored}</div></td>
+                                                }
+                                            })}
+                                        </tr>
+                                    })
+                                )
+                        }
+                    </tbody>
+                </BootstrapTable>
             </div>
         </Card>
     )
