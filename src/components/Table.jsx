@@ -110,6 +110,8 @@ function Table(props) {
         })
     }
 
+    // Generates buttons for the pagination bar
+    // first part of the bar to display the first three pages (or lower depending on the maximum page)
     let paginationFirst = []
     let pagFirstMin = 1
     let pagFirstMax = Math.min(maxPage, 3)
@@ -117,6 +119,8 @@ function Table(props) {
         paginationFirst.push(<button onClick={(e) => { clickedPage(i) }} disabled={page === i}>{i}</button>)
     }
 
+    // middle part of the bar to display the two pages before and after the currently displayed page
+    // with logic to prevent it from conflicting with the first and last part of the pagination bar
     let paginationMiddle = []
     let pagMiddleMin = Math.max(4, page - 1)
     let pagMiddleMax = Math.min(maxPage - 2, page + 2)
@@ -124,6 +128,7 @@ function Table(props) {
         paginationMiddle.push(<button onClick={(e) => { clickedPage(i) }} disabled={page === i}>{i}</button>)
     }
 
+    // last part of the bar to display the last three pages
     let paginationLast = []
     let pagLastMin = Math.max(maxPage - 2, 4)
     let pagLastMax = maxPage
@@ -204,7 +209,6 @@ function Table(props) {
             </div>
             <div>
                 <center>
-
                     <select onChange={(e) => {
                         setItemPerPage(e.target.value)
                     }}>
