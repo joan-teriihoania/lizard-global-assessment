@@ -10,6 +10,7 @@ import './mock';
 
 // Include styles.
 import './styles/index.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Include application component.
 import App from './components/App';
