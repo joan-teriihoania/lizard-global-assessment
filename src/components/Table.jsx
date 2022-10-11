@@ -193,10 +193,12 @@ function Table(props) {
                             return <tr>
                                 {Object.entries(template).map(([property_name, property_info]) => {
                                     if (property_info.type === "array") {
+                                        // joins the array element with commas
                                         return <td><div className="limit-text-2">{o[property_name].join(", ")}</div></td>
                                     } else {
                                         let colored = o[property_name]
                                         if(filter[property_name] !== ""){
+                                            // colors the subsets of characters of the filter value in RED
                                             colored = colored.replace(new RegExp(filter[property_name], "gi"), `<font color="red">${filter[property_name]}</font>`)
                                         }
                                         return <td><div className="limit-text-2" dangerouslySetInnerHTML={{__html: colored}}></div></td>
@@ -220,8 +222,13 @@ function Table(props) {
                         <option value={100}>100</option>
                     </select>
 
+                    {/** goes back a page, except when we are at the first page */}
                     <button onClick={(e) => { setPage(page - 1) }} disabled={page === 1}>🠔</button>
+
+                    {/** adds or removes "..." between each section of the pagination bar depending on the currently displayed page and the maximum page */}
                     {paginationFirst}{pagFirstMax + 1 === pagMiddleMin ? "" : "..."}{paginationMiddle}{pagMiddleMax + 1 === pagLastMin ? "" : "..."}{paginationLast}
+
+                    {/** goes up a page, except when we are at the last page */}
                     <button onClick={(e) => { setPage(page + 1) }} disabled={page === maxPage}>➝</button>
                 </center>
             </div>
