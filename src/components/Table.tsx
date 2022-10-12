@@ -24,7 +24,7 @@ function Table(props: { data: { [key: string]: any }[] }) {
 
     // Filter parameter
     let _filter: { [property: string]: string } = {}
-    // Initializing filter values
+    // Initializing filter values using query string (if any)
     for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
         let tmp = getParameterByName(encodeURIComponent(property))
@@ -253,7 +253,7 @@ function getDataProperties(data: { [key: string]: string | string[] }[]) {
 }
 
 /**
- * 
+ * Get the value of a query string parameter given its name
  * @param name The parameter name
  * @param url The window URL (defaults)
  * @returns The value of the parameter or undefined
