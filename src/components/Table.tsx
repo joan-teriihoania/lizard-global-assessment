@@ -12,10 +12,10 @@ import PaginationBar from "./Table.PaginationBar";
  * @returns JSX
  */
 
-function Table(props: {data: {[key: string]: any}[]}) {
-    let [orderedBy, setOrderedBy] = useState<{property: string, asc: boolean} | undefined>(undefined) // Ordering settings
+function Table(props: { data: { [key: string]: any }[] }) {
+    let [orderedBy, setOrderedBy] = useState<{ property: string, asc: boolean } | undefined>(undefined) // Ordering settings
     let template = getDataProperties(props.data) // Data properties as keys, types and uniqueValues (for Arrays) as values. See function for more info.
-    if(template === undefined) throw new Error("Failed to extract template data structure")
+    if (template === undefined) throw new Error("Failed to extract template data structure")
 
     let properties = Object.keys(template!) // Data properties
     let [itemPerPage, setItemPerPage] = useState(10)
@@ -23,14 +23,15 @@ function Table(props: {data: {[key: string]: any}[]}) {
     let [page, setPage] = useState(1)
 
     // Filter parameter
-    let _filter: {[property: string]: string} = {}
+    let _filter: { [property: string]: string } = {}
     // Initializing filter values
     for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
-        _filter[property] = ""
+        let tmp = getParameterByName(encodeURIComponent(property))
+        _filter[property] = tmp !== undefined ? tmp : ""
     }
     // Adding a hook to monitor changes in filter
-    let [filter, setFilter] = useState<{[property: string]: any}>(_filter)
+    let [filter, setFilter] = useState<{ [property: string]: any }>(_filter)
 
 
 
@@ -42,6 +43,12 @@ function Table(props: {data: {[key: string]: any}[]}) {
             setPage(Math.max(newMaxPage, 1))
         }
     }, [filter, itemPerPage])
+
+    useEffect(() => {
+        window.history.replaceState(null, document.title, window.location.pathname + "?" + Object.entries(filter).map(([filter_property, filter_value]) => {
+            return encodeURIComponent(filter_property) + "=" + encodeURIComponent(filter_value)
+        }).join("&"))
+    }, [filter])
 
 
 
@@ -194,7 +201,7 @@ function Table(props: {data: {[key: string]: any}[]}) {
  * @param {any} data: Any value
  * @returns Template properties
  */
-function getDataProperties(data: {[key: string]: string | string[]}[]) {
+function getDataProperties(data: { [key: string]: string | string[] }[]) {
     if (!Array.isArray(data)) throw new Error("Data is not an array") // the data are rows, so its an array of row
     if (data.length === 0) return // if no data, nothing to check
 
@@ -233,7 +240,7 @@ function getDataProperties(data: {[key: string]: string | string[]}[]) {
     }
 
     // Builds the template information structure
-    let template: {[property: string]: {type: string, uniqueValues?: string[]}} = {}
+    let template: { [property: string]: { type: string, uniqueValues?: string[] } } = {}
     for (let i = 0; i < template_properties.length; i++) {
         const template_property = template_properties[i];
         const template_type = template_types[i];
@@ -243,6 +250,21 @@ function getDataProperties(data: {[key: string]: string | string[]}[]) {
     }
 
     return template
+}
+
+/**
+ * 
+ * @param name The parameter name
+ * @param url The window URL (defaults)
+ * @returns The value of the parameter or undefined
+ */
+function getParameterByName(name: string, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return undefined;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
 export default Table
