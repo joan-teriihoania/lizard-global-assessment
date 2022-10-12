@@ -6,20 +6,22 @@ import { Card, Col, Row } from "react-bootstrap";
 import Container from 'react-bootstrap/Container';
 import CardHeader from "react-bootstrap/esm/CardHeader";
 
+import Post from "../models/Post"
+
 
 function App() {
-  let [posts, setPosts] = useState(undefined)
+  let [posts, setPosts] = useState<undefined | {[x: string]: any}[]>(undefined)
 
   useEffect(() => {
     setTimeout(() => {
-      ApiService.get("/api/posts", (json) => {
-        setPosts(json.posts.map((post) => {
+      ApiService.get("/api/posts", (json: {posts: Post[]}) => {
+        setPosts(json.posts.map((post: Post) => {
           return {
             "Title": post.title,
             "Publication date": new Date(post.publishDate).toLocaleDateString(),
             "Summary": post.summary,
             "Author": post.author.name,
-            "Categories": post.categories.map((c) => c.name)
+            "Categories": post.categories.map((c: {name: string}) => c.name)
           }
         }))
       })

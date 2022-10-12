@@ -12,23 +12,25 @@ import PaginationBar from "./Table.PaginationBar";
  * @returns JSX
  */
 
-function Table(props) {
-    let [orderedBy, setOrderedBy] = useState(undefined) // Ordering settings
-    let template = assertDataFormat(props.data) // Data properties as keys, types and uniqueValues (for Arrays) as values. See function for more info.
-    let properties = Object.keys(template) // Data properties
+function Table(props: {data: {[key: string]: any}[]}) {
+    let [orderedBy, setOrderedBy] = useState<{property: string, asc: boolean} | undefined>(undefined) // Ordering settings
+    let template = getDataProperties(props.data) // Data properties as keys, types and uniqueValues (for Arrays) as values. See function for more info.
+    if(template === undefined) throw new Error("Failed to extract template data structure")
+
+    let properties = Object.keys(template!) // Data properties
     let [itemPerPage, setItemPerPage] = useState(10)
     let [maxPage, setMaxPage] = useState(Math.ceil(props.data.length / itemPerPage))
     let [page, setPage] = useState(1)
 
     // Filter parameter
-    let _filter = {}
+    let _filter: {[property: string]: string} = {}
     // Initializing filter values
     for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
         _filter[property] = ""
     }
     // Adding a hook to monitor changes in filter
-    let [filter, setFilter] = useState(_filter)
+    let [filter, setFilter] = useState<{[property: string]: any}>(_filter)
 
 
 
@@ -46,7 +48,7 @@ function Table(props) {
     /**
      * Handle a click on the ordering button of a column (property)
      */
-    const clickedOrderBtn = function (property) {
+    const clickedOrderBtn = function (property: string) {
         if (orderedBy === undefined || orderedBy.property !== property) { // If there was no prior ordering or the ordering was set on a different property than the one selected now
             setOrderedBy({ // Set the ordering to the now selected property in ascending order
                 property: property,
@@ -67,7 +69,7 @@ function Table(props) {
     /**
      * Handles changes in the filter value of a property and stores it in the filter variable
      */
-    const changedFilterValue = function (property, newvalue) {
+    const changedFilterValue = function (property: string, newvalue: any) {
         let _filter = { ...filter }
         _filter[property] = newvalue
         setFilter(_filter)
@@ -87,8 +89,8 @@ function Table(props) {
         }).filter((o) => { // filters the sorted rows depending on the filtering state
 
             // For each property in the template
-            for (let j = 0; j < Object.entries(template).length; j++) {
-                const [property_name, property_info] = Object.entries(template)[j];
+            for (let j = 0; j < Object.entries(template!).length; j++) {
+                const [property_name, property_info] = Object.entries(template!)[j];
                 const filter_value = filter[property_name];
 
                 // if array
@@ -116,7 +118,7 @@ function Table(props) {
             <CardHeader>
                 {/** This is the filter form */}
                 <FilterForm
-                    template={template}
+                    template={template!}
                     filter={filter}
                     changedFilterValue={changedFilterValue}
                     setItemPerPage={setItemPerPage}
@@ -151,13 +153,13 @@ function Table(props) {
                             (getSortedFilteredData().length === 0) ?
                                 (
                                     <tr>
-                                        <td colspan="100%" className="text-center">No entries found</td>
+                                        <td colSpan={100} className="text-center">No entries found</td>
                                     </tr>
                                 ) : (
                                     getSortedFilteredData().slice((page - 1) * itemPerPage, page * itemPerPage).map((o) => {
                                         // Formats the data to be displayed as a row in the table
                                         return <tr>
-                                            {Object.entries(template).map(([property_name, property_info]) => {
+                                            {Object.entries(template!).map(([property_name, property_info]) => {
                                                 if (property_info.type === "array") {
                                                     // joins the array element with commas
                                                     return <td><div className="limit-text-2">{o[property_name].join(", ")}</div></td>
@@ -192,7 +194,7 @@ function Table(props) {
  * @param {any} data: Any value
  * @returns Template properties
  */
-function assertDataFormat(data) {
+function getDataProperties(data: {[key: string]: string | string[]}[]) {
     if (!Array.isArray(data)) throw new Error("Data is not an array") // the data are rows, so its an array of row
     if (data.length === 0) return // if no data, nothing to check
 
@@ -200,7 +202,7 @@ function assertDataFormat(data) {
     const template_properties = Object.keys(data[0]) // Takes the JSON keys of the first data object
     const template_types = Object.entries(data[0]).map(([property, v]) => { // For each property (and its value) of the first data object
         if (Array.isArray(v)) { // if the property's value of the template is an array itself
-            let uniqueValues = [] // init
+            let uniqueValues: string[] = [] // init
             for (let i = 0; i < data.length; i++) { // for every row
                 const element_value = data[i][property]; // take the property's value of the row
                 uniqueValues = [...new Set(uniqueValues.concat(element_value))] // merge it to the uniqueValues variable by concatenating them and removing duplicates
@@ -231,7 +233,7 @@ function assertDataFormat(data) {
     }
 
     // Builds the template information structure
-    let template = {}
+    let template: {[property: string]: {type: string, uniqueValues?: string[]}} = {}
     for (let i = 0; i < template_properties.length; i++) {
         const template_property = template_properties[i];
         const template_type = template_types[i];

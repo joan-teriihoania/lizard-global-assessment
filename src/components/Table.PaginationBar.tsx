@@ -7,7 +7,12 @@ import "../styles/Table.css";
  * @returns JSX
  */
 
-function PaginationBar(props) {
+function PaginationBar(props: {
+        setPage: (page: number) => void,
+        maxPage: number,
+        currentPage: number
+    }
+) {
     let setPage = props.setPage
     let maxPage = props.maxPage
     let page = props.currentPage
@@ -41,8 +46,7 @@ function PaginationBar(props) {
 
     return (
         <Form>
-            <Container className="pb-3" fluid>
-                <center>
+            <Container className="pb-3 align-items-center" fluid>
                     {/** goes back a page, except when we are at the first page */}
                     <Button className="me-2" onClick={(e) => { setPage(page - 1) }} disabled={page === 1}>🠔</Button>
 
@@ -57,7 +61,6 @@ function PaginationBar(props) {
 
                     {/** goes up a page, except when we are at the last page */}
                     <Button className="me-2" onClick={(e) => { setPage(page + 1) }} disabled={page === maxPage}>➝</Button>
-                </center>
             </Container>
         </Form>
     )

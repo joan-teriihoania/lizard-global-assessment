@@ -7,7 +7,12 @@ import "../styles/Table.css";
  * @returns JSX
  */
 
-function FilterForm(props) {
+function FilterForm(props: {
+    template: {[property: string]: {type: string, uniqueValues?: string[]}},
+    filter: {[property: string]: any},
+    changedFilterValue: (property: string, newvalue: any) => void,
+    setItemPerPage: (itemPerPage: number) => void
+}) {
     let template = props.template
     let filter = props.filter
     let changedFilterValue = props.changedFilterValue
@@ -36,7 +41,7 @@ function FilterForm(props) {
                                             // When changing the options, calls the handling function with the property name and the selected options
                                             changedFilterValue(property_name, [...e.target.options].filter((v) => v.selected).map((v) => v.value))
                                         }} multiple>
-                                            {property_info.uniqueValues.map((v) => {
+                                            {property_info.uniqueValues!.map((v) => {
                                                 return <option value={v}>{v}</option>
                                             })}
                                         </Form.Select>
@@ -55,7 +60,7 @@ function FilterForm(props) {
                         <Form.Text>Item per page</Form.Text>
                     </Form.Label>
                     <Form.Select onChange={(e) => {
-                        setItemPerPage(e.target.value)
+                        setItemPerPage(Number(e.target.value))
                     }}>
                         <option value={1}>1</option>
                         <option value={5}>5</option>
